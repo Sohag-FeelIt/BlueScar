@@ -1,0 +1,1256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BlueScar Dashboard</title>
+
+  <!-- Fonts: Satoshi (clean UI), Inter fallback, Bankora (brand accent) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.cdnfonts.com/css/satoshi" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind + FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <style>
+    :root {
+      /* Brand blues (accessible contrast) */
+      --bs-blue-900: #0a2540;
+      --bs-blue-800: #113a66;
+      --bs-blue-700: #174a80;
+      --bs-blue-600: #1d5ba0;
+      --bs-blue-500: #2563eb; /* Accent */
+      --bs-blue-400: #4f89ff;
+      --bs-cyan-500: #04c2ff; /* cyan scratch */
+      --bs-cyan-400: #35d1ff;
+
+      /* System neutrals */
+      --bs-bg: #f6f8fc;
+      --bs-surface: #ffffff;
+      --bs-muted: #edf2f7;
+      --bs-border: #e2e8f0;
+      --bs-text: #0f172a; /* slate-900 */
+      --bs-text-muted: #475569; /* slate-600 */
+
+      /* Motion */
+      --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+      --dur-1: 120ms;
+      --dur-2: 220ms;
+      --dur-3: 420ms;
+
+      /* Layout */
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+      --shadow-1: 0 6px 16px rgba(15, 23, 42, 0.06);
+      --shadow-2: 0 10px 24px rgba(15, 23, 42, 0.08);
+      --shadow-3: 0 18px 40px rgba(15, 23, 42, 0.12);
+    }
+    html, body {
+      height: 100%;
+      background: linear-gradient(135deg, #e8efff 0%, #f8fbff 100%);
+      font-family: "Satoshi", "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--bs-text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      margin: 0;
+    }
+
+    /* Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: min-content;
+      gap: 24px;
+      min-height: calc(100vh - 48px);
+    }
+
+    /* Header */
+    .section-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--bs-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: radial-gradient(90px 90px at 30% 30%, var(--bs-cyan-500), var(--bs-blue-700));
+      display: grid;
+      place-items: center;
+      color: white;
+      box-shadow: var(--shadow-2);
+    }
+
+    .brand-text {
+      font-family: "Poppins", "Bankora", "Inter", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      font-size: 28px;
+      background: linear-gradient(180deg, var(--bs-blue-900), var(--bs-blue-600));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: none;
+    }
+
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .welcome .title {
+      font-family: "Poppins", "Bankora", "Inter", sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--bs-blue-900);
+      user-select: none;
+    }
+    .welcome .date {
+      font-size: 13px;
+      color: var(--bs-text-muted);
+      font-weight: 500;
+      user-select: none;
+      margin-bottom: 2px;
+    }
+
+    /* Cards / Surfaces */
+    .surface {
+      background: var(--bs-surface);
+      border: 1px solid var(--bs-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-1);
+    }
+
+    /* Feature cards grid */
+    .features {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+    .feature-card {
+      grid-column: span 4 / span 4;
+      padding: 22px;
+      transition: transform var(--dur-2) var(--easing), box-shadow var(--dur-2) var(--easing), border-color var(--dur-2) var(--easing);
+      cursor: default;
+      user-select: none;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-2);
+      border-color: #dbe3ef;
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.25);
+    }
+    .fi-food { background: linear-gradient(135deg, #ff7a7a, #f05228); }
+    .fi-email { background: linear-gradient(135deg, #3b82f6, #6b8cff); }
+    .fi-notes { background: linear-gradient(135deg, #00c0c7, #57a9ff); }
+    .fi-pdf { background: linear-gradient(135deg, #f472b6, #a855f7); }
+    .fi-rem { background: linear-gradient(135deg, #f59e0b, #f97316); }
+    .fi-code { background: linear-gradient(135deg, #6d28d9, #4c1d95); }
+
+    .feature-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #d7e0f0;
+      color: #0f172a;
+      background: linear-gradient(180deg, #ffffff, #f9fbff);
+      transition: all var(--dur-2) var(--easing);
+      cursor: pointer;
+    }
+    .feature-btn:hover {
+      border-color: var(--bs-blue-500);
+      color: var(--bs-blue-900);
+      box-shadow: 0 10px 24px rgba(79, 137, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    /* Main row: Chat + Calendar */
+    .main-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      min-height: 500px;
+    }
+    .chat {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--bs-border);
+    }
+    .chat-title {
+      font-family: "Poppins", "Bankora", "Inter", sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--bs-blue-900);
+      user-select: none;
+    }
+    .messages {
+      overflow-y: auto;
+      padding: 18px;
+      background: #f6f8fd;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bubble {
+      max-width: min(640px, 85%);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-1);
+      transition: transform var(--dur-1) var(--easing);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .bubble:hover {
+      transform: translateY(-1px);
+    }
+    .ai {
+      background: #f3f6fb;
+      border: 1px solid #e6edf8;
+      user-select: text;
+    }
+    .me {
+      color: white;
+      background: linear-gradient(160deg, var(--bs-blue-700), var(--bs-blue-500));
+      margin-left: auto;
+      border-bottom-right-radius: 8px;
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
+      user-select: text;
+    }
+
+    .chat-input {
+      border-top: 1px solid var(--bs-border);
+      padding: 14px 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .input-shell {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      background: white;
+      border: 1px solid #dbe3ef;
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: var(--shadow-1);
+    }
+    .input-shell input {
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 8px 10px;
+      font-size: 14px;
+      color: var(--bs-blue-900);
+      font-family: inherit;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid #e5ecf7;
+      background: #f9fbff;
+      color: var(--bs-blue-700);
+      transition: all var(--dur-2) var(--easing);
+      cursor: pointer;
+    }
+    .icon-btn:hover {
+      border-color: var(--bs-blue-500);
+      color: var(--bs-blue-900);
+      transform: translateY(-1px);
+    }
+
+    .send-btn {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: none;
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(160deg, var(--bs-blue-600), var(--bs-blue-400));
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+      transition: transform var(--dur-2) var(--easing), box-shadow var(--dur-2) var(--easing);
+      cursor: pointer;
+    }
+    .send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-3);
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--bs-blue-900);
+      border: 1px solid #dfe7f5;
+      background: #ffffff;
+      transition: all var(--dur-2) var(--easing);
+      cursor: pointer;
+      user-select: none;
+    }
+    .chip:hover {
+      border-color: var(--bs-blue-500);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+      transform: translateY(-1px);
+    }
+
+    /* Calendar */
+    .calendar {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+    .cal-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--bs-border);
+      font-weight: 600;
+      color: var(--bs-blue-900);
+      user-select: none;
+    }
+    .cal-body {
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .cal-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+    }
+    .cal-date {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: #eef3ff;
+      color: var(--bs-blue-900);
+      font-weight: 600;
+      font-size: 13px;
+      user-select: none;
+      cursor: default;
+    }
+    .cal-date.today {
+      background: linear-gradient(180deg, var(--bs-blue-600), var(--bs-blue-400));
+      color: white;
+    }
+    
+    /* 3D Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      color: white;
+      border: none;
+      transition: transform var(--dur-1) var(--easing), box-shadow var(--dur-2) var(--easing);
+      cursor: pointer;
+      user-select: none;
+      transform-style: preserve-3d;
+      position: relative;
+    }
+    .status-pill.completed {
+      background: linear-gradient(145deg, #00e676, #00c853);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .status-pill.incomplete {
+      background: linear-gradient(145deg, #ff9800, #f57c00);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .status-pill:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .status-pill:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Coding panel + Tasks */
+    .coding, .tasks {
+      grid-column: 1 / -1;
+    }
+    .file-tree {
+      border-bottom: 1px solid var(--bs-border);
+      padding: 14px 16px;
+      user-select: none;
+    }
+    .editor {
+      height: 280px;
+      padding: 14px;
+      background: #f6f8fd;
+    }
+    .editor textarea {
+      height: 100%;
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      resize: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      color: #0b1220;
+      font-feature-settings: "liga" 0;
+      line-height: 1.25;
+    }
+
+    .tasks-wrap {
+      padding: 18px;
+    }
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .task-card {
+      grid-column: span 3 / span 3;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--bs-border);
+      background: #fbfdff;
+      transition: all var(--dur-2) var(--easing);
+      user-select: none;
+    }
+    .task-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-2);
+      border-color: #dbe3ef;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      user-select: none;
+    }
+    .b-done { background: #dcfce7; color: #166534; }
+    .b-progress { background: #dbeafe; color: #1d4ed8; }
+    .b-pending { background: #fff7cc; color: #92400e; }
+    .b-blocked { background: #fee2e2; color: #991b1b; }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 18, 30, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      padding: 24px;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-card {
+      width: min(560px, 92vw);
+      background: white;
+      border-radius: 16px;
+      box-shadow: var(--shadow-3);
+      border: 1px solid var(--bs-border);
+      max-height: 84vh;
+      overflow: auto;
+      animation: rise var(--dur-3) var(--easing);
+    }
+    @keyframes rise {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .feature-card { grid-column: span 6 / span 6; }
+      .task-card { grid-column: span 6 / span 6; }
+    }
+    @media (max-width: 768px) {
+      .feature-card, .task-card { grid-column: span 12 / span 12; }
+      .main-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <div class="container mx-auto px-4 py-6">
+    <div class="dashboard-grid">
+      <!-- Header -->
+      <header class="section-header">
+        <div class="brand" aria-label="BlueScar brand">
+          <div class="brand-icon" aria-hidden="true">
+            <!-- Cyan scratches icon (3) -->
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 22 C8 16,12 10,14 6" stroke="url(#g1)" stroke-width="4" stroke-linecap="round"/>
+              <path d="M10 24 C13 18,16 12,18 8" stroke="url(#g2)" stroke-width="4" stroke-linecap="round"/>
+              <path d="M16 22 C19 17,22 12,24 8" stroke="url(#g3)" stroke-width="4" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="g1" x1="4" y1="22" x2="14" y2="6" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#04c2ff"/><stop offset="1" stop-color="#35d1ff"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="10" y1="24" x2="18" y2="8" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#04c2ff"/><stop offset="1" stop-color="#35d1ff"/>
+                </linearGradient>
+                <linearGradient id="g3" x1="16" y1="22" x2="24" y2="8" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#04c2ff"/><stop offset="1" stop-color="#35d1ff"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="brand-text">BlueScar Dashboard</div>
+        </div>
+        <div class="welcome">
+          <div class="title">Welcome back!</div>
+          <div id="presentDay" class="date">—</div>
+          <div id="currentDate" class="date">—</div>
+        </div>
+      </header>
+
+      <!-- Feature Cards -->
+      <section class="features">
+        <article class="feature-card surface">
+          <div class="feature-icon fi-food"><i class="fa-solid fa-utensils"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">Food Ordering</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Order from favorites with smart suggestions and live updates.</p>
+          <button class="feature-btn" onclick="openFeature('food')">
+            <i class="fa-solid fa-cart-shopping mr-2"></i>Order Now
+          </button>
+        </article>
+
+        <article class="feature-card surface">
+          <div class="feature-icon fi-email"><i class="fa-solid fa-envelope"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">Email Assistant</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Compose, send, and schedule with AI‑powered templates.</p>
+          <button class="feature-btn" onclick="openFeature('email')">
+            <i class="fa-solid fa-pen-to-square mr-2"></i>Compose Email
+          </button>
+        </article>
+
+        <article class="feature-card surface">
+          <div class="feature-icon fi-notes"><i class="fa-solid fa-note-sticky"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">Smart Notes</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Categorized notes with search and cloud sync.</p>
+          <button class="feature-btn" onclick="openFeature('notes')">
+            <i class="fa-solid fa-plus mr-2"></i>Create Note
+          </button>
+        </article>
+
+        <article class="feature-card surface">
+          <div class="feature-icon fi-pdf"><i class="fa-solid fa-file-pdf"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">PDF Q&A</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Upload a PDF to summarize or ask targeted questions.</p>
+          <button class="feature-btn" onclick="openFeature('pdf')">
+            <i class="fa-solid fa-upload mr-2"></i>Upload PDF
+          </button>
+        </article>
+
+        <article class="feature-card surface">
+          <div class="feature-icon fi-rem"><i class="fa-solid fa-bell"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">Smart Reminders</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Contextual reminders based on time and location.</p>
+          <button class="feature-btn" onclick="openFeature('reminders')">
+            <i class="fa-regular fa-clock mr-2"></i>Add Reminder
+          </button>
+        </article>
+
+        <article class="feature-card surface">
+          <div class="feature-icon fi-code"><i class="fa-solid fa-code"></i></div>
+          <h3 class="mt-4 font-semibold text-lg text-[var(--bs-blue-900)]">Coding Assistant</h3>
+          <p class="text-[var(--bs-text-muted)] mt-1 text-sm">Generate code, fix bugs, preview changes instantly.</p>
+          <button class="feature-btn" onclick="toggleCoding()">
+            <i class="fa-solid fa-terminal mr-2"></i>Start Coding
+          </button>
+        </article>
+      </section>
+
+      <!-- Main Row -->
+      <section class="main-row">
+        <!-- Chat -->
+        <div class="chat surface">
+          <div class="chat-header">
+            <div class="brand-icon" style="width: 36px; height: 36px; border-radius: 10px; box-shadow: none">
+              <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
+            </div>
+            <div class="chat-title">BlueScar</div>
+          </div>
+
+          <div id="messages" class="messages">
+            <div class="bubble ai">
+              Hi! I'm BlueScar. I can help with food orders, emails, notes, PDFs, reminders, calendar events, and coding. What's next?
+            </div>
+          </div>
+
+          <div class="chat-input">
+            <div class="input-shell">
+              <button class="icon-btn" onclick="document.getElementById('fileInput').click()">
+                <i class="fa-solid fa-paperclip"></i>
+              </button>
+              <input id="msg" type="text" placeholder="Type a message..." />
+              <button class="icon-btn" id="micBtn" onclick="toggleVoice()">
+                <i id="micIcon" class="fa-solid fa-microphone"></i>
+              </button>
+              <button class="send-btn" onclick="sendMessage()">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+              <input id="fileInput" class="hidden" type="file" accept=".pdf,.doc,.docx,.txt" />
+            </div>
+
+            <div class="quick-actions mt-2">
+              <button class="chip" onclick="qa('weather')"><i class="fa-solid fa-cloud-sun mr-2"></i>Weather</button>
+              <button class="chip" onclick="qa('news')"><i class="fa-solid fa-newspaper mr-2"></i>News</button>
+              <button class="chip" onclick="qa('calendar')"><i class="fa-regular fa-calendar mr-2"></i>Calendar</button>
+              <button class="chip" onclick="qa('tasks')"><i class="fa-solid fa-list-check mr-2"></i>Tasks</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calendar -->
+        <aside class="calendar surface">
+          <div class="cal-head">
+            <span id="calLabel">Task Management</span>
+          </div>
+          <div id="calBody" class="cal-body"></div>
+        </aside>
+      </section>
+
+      <!-- Coding Panel -->
+      <section id="coding" class="coding surface" style="display: none;">
+        <div class="file-tree flex items-center justify-between">
+          <div class="font-semibold text-[var(--bs-blue-900)]">Coding Assistant</div>
+          <button class="chip" onclick="toggleCoding()">
+            <i class="fa-solid fa-expand mr-2"></i>Toggle
+          </button>
+        </div>
+        <div class="editor">
+          <textarea id="codeEditor" placeholder="function hello() { console.log('Hello BlueScar!'); }"></textarea>
+        </div>
+      </section>
+
+      <!-- Tasks + Activity -->
+      <section class="tasks surface">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--bs-border)]">
+          <h2 class="font-semibold text-[var(--bs-blue-900)]">Today's Schedule</h2>
+          <button class="chip" onclick="addTaskPrompt()">
+            <i class="fa-solid fa-plus mr-2"></i>Add Task
+          </button>
+        </div>
+        <div class="tasks-wrap">
+          <div id="taskGrid" class="task-grid"></div>
+
+          <div class="mt-6">
+            <h3 class="font-semibold text-[var(--bs-blue-900)] mb-3">Recent Activity</h3>
+            <div id="activity" class="space-y-3 text-sm"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-card">
+      <div class="flex items-center justify-between p-5 border-b border-[var(--bs-border)]">
+        <h2 id="modalTitle" class="font-semibold text-[var(--bs-blue-900)] text-lg">Title</h2>
+        <button class="icon-btn" onclick="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modalBody" class="p-5"></div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let voiceMode = false, recording = false;
+
+    const API = {
+      calendar: "/api/calendar",
+      email: "/api/email", 
+      restaurant: "/api/restaurant"
+    };
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", () => {
+      const now = new Date();
+      // Present day on separate line
+      document.getElementById("presentDay").textContent = now.toLocaleDateString(undefined, { weekday: "long" });
+      // Full date on another line
+      document.getElementById("currentDate").textContent = now.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+      
+      buildCalendar(now);
+      wireEvents();
+      loadTasks();
+      loadActivity();
+    });
+
+    // Event wiring
+    function wireEvents() {
+      const input = document.getElementById("msg");
+      const fileInput = document.getElementById("fileInput");
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        const f = e.target.files?.[0];
+        if (f) pushMe(`Uploaded "${f.name}"`);
+      });
+    }
+
+    // Chat helpers
+    function pushAI(text) {
+      const area = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = "bubble ai";
+      div.innerText = text;
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+    }
+    function pushMe(text) {
+      const area = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = "bubble me";
+      div.innerText = text;
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("msg");
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = "";
+      pushMe(val);
+
+      setTimeout(() => {
+        const resp = route(val);
+        pushAI(resp);
+        smartActions(val);
+      }, 500);
+    }
+
+    function route(txt) {
+      const s = txt.toLowerCase();
+      if (s.includes("order")) return "Sure — which cuisine or restaurant should I look for?";
+      if (s.includes("email")) return "Tell me the recipient, subject, and the outline. I'll draft it.";
+      if (s.includes("calendar") || s.includes("meeting") || s.includes("schedule"))
+        return "What should I schedule? Include title, date, and time.";
+      if (s.includes("remind")) return "What should I remind you about and when?";
+      return "I can handle food orders, email drafting/sending, notes, PDFs, reminders, calendar events, and coding. What should we do?";
+    }
+
+    function qa(type) {
+      const map = {
+        weather: "🌤️ Today looks great: 26°C, partly cloudy.",
+        news: "📰 Headlines: AI breakthrough, markets steady, product launches.",
+        calendar: "📅 You have 2 events today. Want me to add one?",
+        tasks: "✅ 5 tasks pending: 2 high priority."
+      };
+      pushAI(map[type] || "What should I do next?");
+    }
+
+    function toggleVoice() {
+      recording = !recording;
+      const micIcon = document.getElementById("micIcon");
+      micIcon.className = recording ? "fa-solid fa-stop" : "fa-solid fa-microphone";
+      if (recording) {
+        pushAI("🎤 Listening...");
+        setTimeout(() => {
+          recording = false;
+          micIcon.className = "fa-solid fa-microphone";
+          const sample = "Schedule a meeting with Alex tomorrow at 2 PM";
+          pushMe(`"${sample}"`);
+          setTimeout(() => {
+            pushAI(route(sample));
+            smartActions(sample);
+          }, 500);
+        }, 2500);
+      }
+    }
+
+    // Calendar (Task Management) with dates and 3D status pills
+    function buildCalendar(date) {
+      const host = document.getElementById("calBody");
+      host.innerHTML = "";
+      const year = date.getFullYear(), month = date.getMonth();
+      const days = new Date(year, month + 1, 0).getDate();
+      const saved = JSON.parse(localStorage.getItem("bs_cal") || "{}");
+      const today = date.getDate();
+
+      for (let d = 1; d <= days; d++) {
+        const row = document.createElement("div");
+        row.className = "cal-row";
+
+        const isToday = d === today;
+        const dd = document.createElement("div");
+        dd.className = "cal-date" + (isToday ? " today" : "");
+        dd.textContent = d;
+
+        const state = saved[d] || (d % 2 === 0 ? "completed" : "incomplete");
+        const pill = document.createElement("button");
+        pill.className = `status-pill ${state}`;
+        pill.setAttribute("data-day", d);
+        pill.textContent = state === "completed" ? "Completed" : "Incomplete";
+        pill.addEventListener("click", () => toggleStatus(pill));
+
+        row.appendChild(dd);
+        row.appendChild(pill);
+        host.appendChild(row);
+      }
+    }
+
+    function toggleStatus(el) {
+      const d = el.getAttribute("data-day");
+      const saved = JSON.parse(localStorage.getItem("bs_cal") || "{}");
+      const now = el.classList.contains("completed") ? "incomplete" : "completed";
+      
+      el.classList.remove("completed", "incomplete");
+      el.classList.add(now);
+      el.textContent = now === "completed" ? "Completed" : "Incomplete";
+      
+      saved[d] = now;
+      localStorage.setItem("bs_cal", JSON.stringify(saved));
+      addActivity("Task status updated", `Day ${d} marked as ${now}`, "now");
+    }
+
+    // Smart actions
+    function smartActions(msg) {
+      const s = msg.toLowerCase();
+
+      if (s.includes("schedule") || s.includes("meeting") || s.includes("calendar")) {
+        const when = new Date();
+        when.setDate(when.getDate() + 1);
+        addCalendarEvent({
+          title: "Meeting",
+          startDateTime: when.toISOString(),
+          endDateTime: new Date(when.getTime() + 60 * 60 * 1000).toISOString(),
+          description: "Auto-scheduled via BlueScar"
+        });
+      }
+
+      if (s.includes("order") && (s.includes("pizza") || s.includes("food") || s.includes("restaurant"))) {
+        placeOrder({ restaurant: "Top Rated Nearby", items: ["Chef Special"], total: 24.9 });
+      }
+
+      if (s.includes("email") || (s.includes("send") && s.includes("mail"))) {
+        sendMail({ to: "client@example.com", subject: "Follow-up", body: "Hello, following up on our discussion." });
+      }
+    }
+
+    // Mock API calls
+    async function addCalendarEvent(evt) {
+      pushAI("Adding event to calendar...");
+      await delay();
+      addActivity("Calendar event added", `${evt.title} scheduled`, "now");
+      pushAI(`✅ Event "${evt.title}" added for ${new Date(evt.startDateTime).toLocaleDateString()}.`);
+      return true;
+    }
+    async function placeOrder(order) {
+      pushAI("Placing your order...");
+      await delay();
+      addActivity("Restaurant order placed", `${order.restaurant} — ${order.items.join(", ")}`, "now");
+      pushAI("✅ Order placed successfully! ETA 30–45 minutes.");
+      return true;
+    }
+    async function sendMail(mail) {
+      pushAI("Sending email...");
+      await delay();
+      addActivity("Email sent", `To: ${mail.to} — ${mail.subject}`, "now");
+      pushAI(`✅ Email sent to ${mail.to}.`);
+      return true;
+    }
+
+    function delay(t = 900 + Math.random() * 700) {
+      return new Promise(r => setTimeout(r, t));
+    }
+
+    // Activity feed
+    function addActivity(title, desc, when) {
+      const wrap = document.getElementById("activity");
+      const row = document.createElement("div");
+      row.className = "flex items-start gap-3";
+      row.innerHTML = `
+        <span class="badge b-progress">Info</span>
+        <div>
+          <span class="font-medium">${title}</span> — ${desc}
+          <span class="text-[var(--bs-text-muted)]">· ${when}</span>
+        </div>`;
+      wrap.prepend(row);
+    }
+
+    // Task schedule with dates and completion status
+    function loadTasks() {
+      const defaultTasks = [
+        { id: "1", title: "Morning Routine", desc: "Exercise, meditation, breakfast", date: "2025-08-15", time: "8:00 AM - 9:00 AM", status: "completed" },
+        { id: "2", title: "Team Meeting", desc: "Weekly project update with team", date: "2025-08-15", time: "10:30 AM - 11:30 AM", status: "incomplete" },
+        { id: "3", title: "Code Review", desc: "Review pull requests for frontend", date: "2025-08-15", time: "2:00 PM - 3:00 PM", status: "incomplete" },
+        { id: "4", title: "Client Call", desc: "Discuss project requirements", date: "2025-08-15", time: "4:00 PM - 5:00 PM", status: "incomplete" }
+      ];
+      
+      const tasks = JSON.parse(localStorage.getItem("bs_tasks") || JSON.stringify(defaultTasks));
+      localStorage.setItem("bs_tasks", JSON.stringify(tasks)); // Ensure defaults are saved
+      
+      const grid = document.getElementById("taskGrid");
+      grid.innerHTML = "";
+      
+      tasks.forEach((t) => {
+        const card = document.createElement("div");
+        card.className = "task-card";
+        
+        const badgeClass = t.status === "completed" ? "b-done" : "b-pending";
+        const statusText = t.status === "completed" ? "Completed" : "Pending";
+        
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="font-semibold">${t.title}</div>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+          <p class="text-sm text-[var(--bs-text-muted)] mt-1">${t.desc}</p>
+          <div class="flex items-center justify-between mt-3">
+            <span class="text-xs text-[var(--bs-text-muted)]">${t.time}</span>
+            <button class="status-pill ${t.status}" onclick="toggleTaskStatus('${t.id}', this)" data-task-id="${t.id}">
+              ${t.status === "completed" ? "Completed" : "Incomplete"}
+            </button>
+          </div>
+          <div class="text-xs text-[var(--bs-text-muted)] mt-2">📅 ${t.date}</div>`;
+        grid.appendChild(card);
+      });
+      
+      updateOverallStatus();
+    }
+
+    function toggleTaskStatus(taskId, buttonElement) {
+      const tasks = JSON.parse(localStorage.getItem("bs_tasks") || "[]");
+      const taskIndex = tasks.findIndex(t => t.id === taskId);
+      
+      if (taskIndex !== -1) {
+        const newStatus = tasks[taskIndex].status === "completed" ? "incomplete" : "completed";
+        tasks[taskIndex].status = newStatus;
+        localStorage.setItem("bs_tasks", JSON.stringify(tasks));
+        
+        // Update button
+        buttonElement.className = `status-pill ${newStatus}`;
+        buttonElement.textContent = newStatus === "completed" ? "Completed" : "Incomplete";
+        
+        // Update badge
+        const badge = buttonElement.closest('.task-card').querySelector('.badge');
+        badge.className = `badge ${newStatus === "completed" ? "b-done" : "b-pending"}`;
+        badge.textContent = newStatus === "completed" ? "Completed" : "Pending";
+        
+        addActivity("Task updated", `"${tasks[taskIndex].title}" marked as ${newStatus}`, "now");
+        updateOverallStatus();
+      }
+    }
+
+    function updateOverallStatus() {
+      const tasks = JSON.parse(localStorage.getItem("bs_tasks") || "[]");
+      const completedTasks = tasks.filter(t => t.status === "completed").length;
+      const totalTasks = tasks.length;
+      
+      // Update calendar label to show overall status
+      const label = document.getElementById("calLabel");
+      if (totalTasks === 0) {
+        label.textContent = "Task Management";
+      } else if (completedTasks === totalTasks) {
+        label.textContent = `Task Management (All Completed)`;
+      } else {
+        label.textContent = `Task Management (${completedTasks}/${totalTasks} Done)`;
+      }
+    }
+
+    function addTaskPrompt() {
+      const title = prompt("Task title:");
+      if (!title) return;
+      
+      const desc = prompt("Description:", "New task");
+      const date = prompt("Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
+      const time = prompt("Time:", "TBD");
+      
+      const newTask = {
+        id: Date.now().toString(),
+        title,
+        desc: desc || "New task",
+        date: date || new Date().toISOString().split('T')[0],
+        time: time || "TBD",
+        status: "incomplete"
+      };
+      
+      const tasks = JSON.parse(localStorage.getItem("bs_tasks") || "[]");
+      tasks.push(newTask);
+      localStorage.setItem("bs_tasks", JSON.stringify(tasks));
+      
+      loadTasks();
+      addActivity("Task created", `"${title}" added to schedule`, "now");
+    }
+
+    function loadActivity() {
+      const wrap = document.getElementById("activity");
+      wrap.innerHTML = `
+        <div class="flex items-start gap-3">
+          <span class="badge b-done">Done</span>
+          <div><span class="font-medium">Task completed</span> — "Design Homepage" <span class="text-[var(--bs-text-muted)]">· 2h ago</span></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="badge b-progress">Info</span>
+          <div><span class="font-medium">File uploaded</span> — documentation.pdf <span class="text-[var(--bs-text-muted)]">· 4h ago</span></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="badge b-pending">Note</span>
+          <div><span class="font-medium">Meeting scheduled</span> — Q3 planning <span class="text-[var(--bs-text-muted)]">· yesterday</span></div>
+        </div>`;
+    }
+
+    // Modal system (all feature tabs working)
+    function openFeature(type) {
+      const modal = document.getElementById("modal");
+      const title = document.getElementById("modalTitle");
+      const body = document.getElementById("modalBody");
+
+      const views = {
+        food: {
+          t: "Food Ordering",
+          b: `
+            <div class="space-y-4">
+              <div class="bg-[var(--bs-muted)] p-4 rounded-[12px]">
+                <h4 class="font-semibold mb-2">Popular Restaurants</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <button class="chip" onclick="selectRestaurant('Pizza Palace')">🍕 Pizza Palace</button>
+                  <button class="chip" onclick="selectRestaurant('Sushi Master')">🍣 Sushi Master</button>
+                  <button class="chip" onclick="selectRestaurant('Burger Hub')">🍔 Burger Hub</button>
+                  <button class="chip" onclick="selectRestaurant('Healthy Eats')">🥗 Healthy Eats</button>
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Delivery Address</label>
+                <input id="addr" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="123 Main St" />
+              </div>
+              <button class="feature-btn" onclick="quickOrder()">Place Quick Order</button>
+            </div>`
+        },
+        email: {
+          t: "Email Assistant", 
+          b: `
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">To</label>
+                <input id="em_to" type="email" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="recipient@example.com" />
+              </div>
+              <div>
+                <label class="text-sm font-medium">Subject</label>
+                <input id="em_sub" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="Subject" />
+              </div>
+              <div>
+                <label class="text-sm font-medium">Message</label>
+                <textarea id="em_body" rows="5" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="Write your email..."></textarea>
+              </div>
+              <div class="flex gap-3">
+                <button class="chip" onclick="draftEmail()">Generate Draft</button>
+                <button class="feature-btn" onclick="sendFromModal()">Send Email</button>
+              </div>
+            </div>`
+        },
+        notes: {
+          t: "Smart Notes",
+          b: `
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Title</label>
+                <input id="noteTitle" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="Note title" />
+              </div>
+              <div>
+                <label class="text-sm font-medium">Category</label>
+                <select id="noteCat" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3">
+                  <option>Work</option><option>Personal</option><option>Ideas</option><option>Meeting</option><option>Research</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Content</label>
+                <textarea id="noteBody" rows="6" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="Start typing..."></textarea>
+              </div>
+              <button class="feature-btn" onclick="saveNote()">Save Note</button>
+            </div>`
+        },
+        pdf: {
+          t: "PDF Q&A",
+          b: `
+            <div class="space-y-4">
+              <div class="bg-[var(--bs-muted)] p-4 rounded-[12px] text-center">
+                <i class="fa-solid fa-file-pdf text-3xl text-rose-500"></i>
+                <p class="text-[var(--bs-text-muted)] mt-2">Upload a PDF to start.</p>
+                <button class="chip" onclick="document.getElementById('pdfUp').click()">Choose PDF</button>
+                <input id="pdfUp" type="file" accept=".pdf" class="hidden" />
+              </div>
+              <div>
+                <label class="text-sm font-medium">Ask a question</label>
+                <textarea id="pdfQ" rows="4" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="What do you want to know?"></textarea>
+              </div>
+              <div class="flex gap-3">
+                <button class="chip" onclick="pushAI('Analyzing PDF and answering your question...')">Ask Question</button>
+                <button class="chip" onclick="pushAI('Generating PDF summary...')">Summarize</button>
+              </div>
+            </div>`
+        },
+        reminders: {
+          t: "Smart Reminders",
+          b: `
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Reminder</label>
+                <input id="remText" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" placeholder="e.g., Call Sam" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-sm font-medium">Date</label>
+                  <input id="remDate" type="date" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" />
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Time</label>
+                  <input id="remTime" type="time" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3" />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Repeat</label>
+                <select id="remRepeat" class="w-full mt-1 border border-[var(--bs-border)] rounded-[10px] p-3">
+                  <option>One-time</option><option>Daily</option><option>Weekly</option><option>Monthly</option>
+                </select>
+              </div>
+              <button class="feature-btn" onclick="setReminder()">Set Reminder</button>
+            </div>`
+        }
+      };
+
+      title.textContent = views[type].t;
+      body.innerHTML = views[type].b;
+      modal.classList.add("show");
+
+      // Set default date/time for reminders
+      if (type === "reminders") {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById("remDate").value = tomorrow.toISOString().split('T')[0];
+        document.getElementById("remTime").value = "09:00";
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("show");
+    }
+
+    // Modal actions
+    function selectRestaurant(name) {
+      pushAI(`Selected ${name}. What would you like to order?`);
+    }
+
+    async function quickOrder() {
+      const addr = document.getElementById("addr")?.value || "Default Address";
+      await placeOrder({
+        restaurant: "Pizza Palace",
+        items: ["Margherita Pizza", "Garlic Bread"],
+        total: 19.9,
+        address: addr
+      });
+      closeModal();
+    }
+
+    function draftEmail() {
+      const sub = document.getElementById("em_sub")?.value || "Follow-up";
+      const body = document.getElementById("em_body");
+      body.value = `Hi there,\n\nFollowing up on ${sub.toLowerCase()}.\n\nBest,\nBlueScar`;
+      pushAI("Draft prepared. Review and send when ready.");
+    }
+
+    async function sendFromModal() {
+      const to = document.getElementById("em_to")?.value || "recipient@example.com";
+      const subject = document.getElementById("em_sub")?.value || "No subject";
+      const body = document.getElementById("em_body")?.value || "";
+      await sendMail({ to, subject, body });
+      closeModal();
+    }
+
+    function saveNote() {
+      const title = document.getElementById("noteTitle")?.value || "Untitled";
+      const cat = document.getElementById("noteCat")?.value || "General";
+      const body = document.getElementById("noteBody")?.value || "";
+      const notes = JSON.parse(localStorage.getItem("bs_notes") || "[]");
+      notes.push({ id: Date.now(), title, cat, body });
+      localStorage.setItem("bs_notes", JSON.stringify(notes));
+      pushAI(`📝 Saved note "${title}" in ${cat}.`);
+      addActivity("Note saved", `${title} — ${cat}`, "now");
+      closeModal();
+    }
+
+    async function setReminder() {
+      const text = document.getElementById("remText")?.value || "Reminder";
+      const date = document.getElementById("remDate")?.value || "";
+      const time = document.getElementById("remTime")?.value || "";
+      const repeat = document.getElementById("remRepeat")?.value || "One-time";
+      
+      await addCalendarEvent({
+        title: `Reminder: ${text}`,
+        startDateTime: new Date(`${date}T${time || "09:00"}`).toISOString(),
+        endDateTime: new Date(`${date}T${time || "09:15"}`).toISOString(),
+        description: `${repeat} reminder`
+      });
+      pushAI(`⏰ Reminder set: "${text}" on ${date} ${time} (${repeat}).`);
+      closeModal();
+    }
+
+    // Coding toggle
+    function toggleCoding() {
+      const panel = document.getElementById("coding");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    // Close modal on outside click
+    document.getElementById("modal").addEventListener("click", (e) => {
+      if (e.target.id === "modal") closeModal();
+    });
+  </script>
+</body>
+</html>
+
