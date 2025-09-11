@@ -3,24 +3,16 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
-    // Essential connection options for production stability
+    // Modern, stable connection options only
     const options = {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4,
-      bufferMaxEntries: 0,
-      bufferCommands: false
+      useUnifiedTopology: true
     };
 
-    // Check environment variable
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI environment variable is not defined');
     }
 
-    // Connect to MongoDB
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
 
     logger.info(`✅ MongoDB Connected: ${conn.connection.host}`);
@@ -39,35 +31,11 @@ const connectDB = async () => {
       logger.warn('⚠️ MongoDB disconnected');
     });
 
-    // Graceful shutdown handlers
-    process.on('SIGINT', async () => {
-      try {
-        await mongoose.connection.close();
-        logger.info('🔒 MongoDB connection closed through app termination');
-        process.exit(0);
-      } catch (error) {
-        logger.error(`❌ Error during MongoDB shutdown: ${error.message}`);
-        process.exit(1);
-      }
-    });
-
-    process.on('SIGTERM', async () => {
-      try {
-        await mongoose.connection.close();
-        logger.info('🔒 MongoDB connection closed through SIGTERM');
-        process.exit(0);
-      } catch (error) {
-        logger.error(`❌ Error during MongoDB shutdown: ${error.message}`);
-        process.exit(1);
-      }
-    });
-
     return conn;
 
   } catch (error) {
     logger.error(`❌ Database connection failed: ${error.message}`);
     
-    // Helpful error diagnostics
     if (error.message.includes('ENOTFOUND')) {
       logger.error('🌐 Network error: Check your internet connection and MongoDB URI');
     } else if (error.message.includes('authentication failed')) {
@@ -80,35 +48,5 @@ const connectDB = async () => {
   }
 };
 
-// Health check function for monitoring
-const checkDatabaseHealth = async () => {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.connection.db.admin().ping();
-      return {
-        status: 'healthy',
-        connected: true,
-        readyState: mongoose.connection.readyState,
-        host: mongoose.connection.host,
-        name: mongoose.connection.name
-      };
-    } else {
-      return {
-        status: 'unhealthy',
-        connected: false,
-        readyState: mongoose.connection.readyState,
-        message: 'Database not connected'
-      };
-    }
-  } catch (error) {
-    logger.error(`Database health check failed: ${error.message}`);
-    return {
-      status: 'unhealthy',
-      connected: false,
-      error: error.message
-    };
-  }
-};
-
-// CRITICAL: Export the function directly (not as an object)
+// Export the function directly
 module.exports = connectDB;
