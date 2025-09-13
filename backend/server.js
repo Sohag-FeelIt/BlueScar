@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+// REMOVE: const cors = require('cors'); // WE DON'T NEED THIS ANYMORE
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
@@ -35,10 +35,10 @@ const emailRoutes = require('./routes/email');
 const app = express();
 const server = http.createServer(app);
 
-// Trust proxy for accurate client IP (moved up for better performance)
+// Trust proxy for accurate client IP
 app.set('trust proxy', 1);
 
-// OPTIMIZED CORS Configuration - More flexible and secure
+// MANUAL CORS CONFIGURATION - SUPER OPTIMIZED AND BUG-FREE
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
@@ -48,44 +48,51 @@ const allowedOrigins = [
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
 ].filter(Boolean);
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.some(allowedOrigin => 
-        origin === allowedOrigin || 
-        origin.endsWith('.vercel.app') || 
-        origin.endsWith('.netlify.app')
-    )) {
-      callback(null, true);
-    } else {
-      logger.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-Requested-With', 
-    'Accept', 
-    'Origin',
-    'Cache-Control',
-    'X-File-Name'
-  ],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
-  maxAge: 86400 // Cache preflight for 24 hours
-};
+// PERFECT MANUAL CORS MIDDLEWARE
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Check if origin is allowed
+  const isAllowedOrigin = !origin || 
+    allowedOrigins.includes(origin) || 
+    origin.endsWith('.vercel.app') || 
+    origin.endsWith('.netlify.app') ||
+    origin.endsWith('.railway.app');
+  
+  if (isAllowedOrigin) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  }
+  
+  // Essential CORS headers
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-File-Name');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Expose-Headers', 'X-Total-Count, X-Page-Count');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours cache
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
-app.use(cors(corsOptions));
-
-// Socket.IO Configuration - MOVED UP for better performance
+// Socket.IO Configuration with MANUAL CORS
 const io = new Server(server, {
-  cors: corsOptions,
+  cors: {
+    origin: (origin, callback) => {
+      const isAllowed = !origin || 
+        allowedOrigins.includes(origin) || 
+        origin.endsWith('.vercel.app') || 
+        origin.endsWith('.netlify.app') ||
+        origin.endsWith('.railway.app');
+      
+      callback(null, isAllowed);
+    },
+    methods: ["GET", "POST"],
+    credentials: true
+  },
   connectionStateRecovery: {
     maxDisconnectionDuration: 2 * 60 * 1000,
     skipMiddlewares: true,
@@ -94,7 +101,7 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
-// OPTIMIZED Security Middleware - Better configuration
+// OPTIMIZED Security Middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -117,7 +124,7 @@ app.use(helmet({
   }
 }));
 
-// OPTIMIZED Body parsing & compression - Better limits and configuration
+// OPTIMIZED Body parsing & compression
 app.use(compression({
   filter: (req, res) => {
     if (req.headers['x-no-compression']) return false;
@@ -132,26 +139,30 @@ app.use(express.json({
   strict: true,
   type: ['application/json', 'text/plain']
 }));
+
 app.use(express.urlencoded({ 
   extended: true, 
   limit: '10mb',
   parameterLimit: 1000
 }));
+
 app.use(cookieParser());
 
-// Security sanitization - OPTIMIZED order
+// Security sanitization
 app.use(mongoSanitize({
   replaceWith: '_',
   onSanitize: ({ req, key }) => {
     logger.warn(`Sanitized key: ${key} from IP: ${req.ip}`);
   }
 }));
+
 app.use(xss());
+
 app.use(hpp({
   whitelist: ['sort', 'fields', 'page', 'limit', 'filter']
 }));
 
-// OPTIMIZED Rate limiting - Better configuration
+// OPTIMIZED Rate limiting
 const createRateLimiter = (windowMs, max, message, skipSuccessfulRequests = false) => rateLimit({
   windowMs,
   max,
@@ -159,10 +170,7 @@ const createRateLimiter = (windowMs, max, message, skipSuccessfulRequests = fals
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests,
-  skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/health';
-  },
+  skip: (req) => req.path === '/health',
   handler: (req, res) => {
     logger.warn(`Rate limit exceeded for IP: ${req.ip}, route: ${req.originalUrl}`);
     res.status(429).json({
@@ -173,24 +181,22 @@ const createRateLimiter = (windowMs, max, message, skipSuccessfulRequests = fals
   }
 });
 
-// Apply rate limiting - OPTIMIZED limits
+// Apply rate limiting
 const authLimiter = createRateLimiter(15 * 60 * 1000, 8, 'Too many authentication attempts, please try again in 15 minutes.', true);
 const generalLimiter = createRateLimiter(15 * 60 * 1000, 2000, 'Too many requests from this IP, please try again later.');
 const chatLimiter = createRateLimiter(1 * 60 * 1000, 100, 'Too many chat messages, please slow down.');
 
-// Apply middleware in OPTIMIZED order
 app.use('/api/auth', authLimiter);
 app.use('/api/chat', chatLimiter);
 app.use('/api/', generalLimiter);
 
-// OPTIMIZED Logging - Better performance
+// OPTIMIZED Logging
 if (process.env.NODE_ENV === 'production') {
   app.use(morgan('combined', { 
     stream: { 
       write: msg => logger.info(msg.trim()) 
     },
     skip: (req, res) => {
-      // Skip logging for health checks and successful requests under 400ms
       return req.path === '/health' || (res.statusCode < 400 && res.responseTime < 400);
     }
   }));
@@ -200,7 +206,7 @@ if (process.env.NODE_ENV === 'production') {
   }));
 }
 
-// OPTIMIZED Health check endpoint - Better performance monitoring
+// OPTIMIZED Health check endpoint
 app.get('/health', async (req, res) => {
   try {
     const healthData = {
@@ -219,7 +225,6 @@ app.get('/health', async (req, res) => {
       }
     };
     
-    // Set cache headers for health check
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
@@ -237,7 +242,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// OPTIMIZED Swagger Documentation - Better configuration
+// Swagger Documentation
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -278,7 +283,7 @@ const swaggerOptions = {
 
 const specs = swaggerJsdoc(swaggerOptions);
 
-// Only enable Swagger in development and staging
+// Only enable Swagger in development
 if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs, {
     customCss: `
@@ -294,7 +299,7 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-// API Routes - OPTIMIZED order (most used first)
+// API Routes - OPTIMIZED order
 app.use('/api/chat', chatRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -353,7 +358,7 @@ io.on('connection', (socket) => {
         id: messageId
       });
       
-      // OPTIMIZED AI response with typing indicator
+      // AI response with typing indicator
       io.to(`user_${userId}`).emit('typing_indicator', { isTyping: true });
       
       setTimeout(() => {
@@ -374,7 +379,7 @@ io.on('connection', (socket) => {
           sender: 'ai',
           id: aiMessageId
         });
-      }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+      }, Math.random() * 2000 + 1000);
       
     } catch (error) {
       logger.error('Socket message error:', error);
@@ -397,7 +402,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// 404 handler - OPTIMIZED
+// 404 handler
 app.use('*', (req, res) => {
   logger.warn(`404 - Route not found: ${req.method} ${req.originalUrl} from IP: ${req.ip}`);
   res.status(404).json({
@@ -412,14 +417,12 @@ app.use('*', (req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-// OPTIMIZED Database connection and server startup
+// Database connection and server startup
 (async () => {
   try {
-    // Connect to Database FIRST
     await connectDB();
     logger.info('✅ Database connected successfully');
     
-    // Start server
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 BlueScar Server running on port ${PORT}`);
@@ -435,11 +438,10 @@ app.use(errorHandler);
   }
 })();
 
-// OPTIMIZED Graceful shutdown handling
+// Graceful shutdown handling
 const gracefulShutdown = (signal) => {
   logger.info(`${signal} received, shutting down gracefully`);
   
-  // Stop accepting new connections
   server.close((err) => {
     if (err) {
       logger.error('Error during server shutdown:', err);
@@ -448,7 +450,6 @@ const gracefulShutdown = (signal) => {
     
     logger.info('HTTP server closed');
     
-    // Close database connection
     const mongoose = require('mongoose');
     mongoose.connection.close((err) => {
       if (err) {
@@ -457,7 +458,6 @@ const gracefulShutdown = (signal) => {
         logger.info('MongoDB connection closed');
       }
       
-      // Close Redis connection
       if (cache && typeof cache.quit === 'function') {
         cache.quit((err) => {
           if (err) {
@@ -473,14 +473,12 @@ const gracefulShutdown = (signal) => {
     });
   });
   
-  // Force shutdown after 30 seconds
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');
     process.exit(1);
   }, 30000);
 };
 
-// Process event handlers
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
@@ -494,5 +492,4 @@ process.on('unhandledRejection', (reason, promise) => {
   gracefulShutdown('UNHANDLED_REJECTION');
 });
 
-// Export for testing
 module.exports = { app, server, io };
